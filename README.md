@@ -48,3 +48,10 @@ Los videos subidos y resultados se borran solos a las 2 horas.
 
 ## Pruebas
 `python -m pytest -q tests` (42 pruebas: transcripción, rostros, estilos, render y API web).
+
+## App de Android (APK)
+Descarga **ClipCaptions.apk** desde https://github.com/alexfabricio440-design/clippingalex/releases/tag/apk-latest
+(se recompila solo cada vez que cambia la carpeta `android/`). Al abrirla por primera vez escribe la
+dirección de tu servidor (ej. `192.168.1.20:8000` en tu Wi-Fi, o `https://tu-app...` en la nube).
+La app es el "marco" del teléfono: el procesamiento de video corre en tu servidor.
+Para instalarla, Android puede pedir permiso para "instalar apps de este origen".
