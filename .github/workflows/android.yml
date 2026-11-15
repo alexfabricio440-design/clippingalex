@@ -1,46 +1,94 @@
-name: Compilar APK de Android
+name: Android (pruebas y APK)
 
 on:
   push:
     branches: [main]
-    paths: ["android/**", ".github/workflows/android.yml"]
+    paths: ["android/**", "assets/**", ".github/workflows/android.yml"]
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  apk:
+  unit:
+    name: Pruebas unitarias
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-
+        with: { distribution: temurin, java-version: "17" }
       - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: "8.7"
+        with: { gradle-version: "8.9" }
+      - name: Pruebas
+        working-directory: android
+        run: gradle testDebugUnitTest --no-daemon --stacktrace
 
+  emulator:
+    name: Prueba en emulador (flujo completo)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "17" }
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: "8.9" }
+      - name: Activar KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Emulador + pruebas
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          ram-size: 4096M
+          heap-size: 1024M
+          disable-animations: true
+          script: bash android/ci-emulator.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: previews
+          path: previews
+      - name: Publicar previews en la rama ci-previews
+        if: always()
+        run: |
+          [ -d previews ] || exit 0
+          cp -r previews /tmp/previews
+          git config user.name "github-actions"; git config user.email "actions@github.com"
+          git checkout --orphan ci-previews
+          git rm -rf . > /dev/null 2>&1 || true
+          cp -r /tmp/previews/. .
+          git add -A
+          git commit -m "previews de ${GITHUB_SHA::7}" || exit 0
+          git push -f origin ci-previews
+
+  apk:
+    name: Compilar y publicar APK
+    needs: unit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "17" }
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: "8.9" }
       - name: Compilar
         working-directory: android
         run: gradle assembleDebug --no-daemon --stacktrace
-
       - name: Preparar APK
         run: cp android/app/build/outputs/apk/debug/app-debug.apk ClipCaptions.apk
-
       - uses: actions/upload-artifact@v4
-        with:
-          name: ClipCaptions-apk
-          path: ClipCaptions.apk
-
-      - name: Publicar en Releases (descarga directa desde el telefono)
+        with: { name: ClipCaptions-apk, path: ClipCaptions.apk }
+      - name: Publicar en Releases
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release delete apk-latest --yes --cleanup-tag || true
           gh release create apk-latest ClipCaptions.apk \
             --title "ClipCaptions para Android" \
-            --notes "Descarga **ClipCaptions.apk**, abrelo en tu telefono e instalalo (permite instalar apps de este origen si Android lo pide). Commit: ${GITHUB_SHA::7}"
+            --notes "ClipCaptions.apk: app independiente, todo se procesa en el telefono (solo la transcripcion usa internet con tu clave de Groq). Commit: ${GITHUB_SHA::7}"
