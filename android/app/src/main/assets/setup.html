@@ -1,0 +1,28 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0b0b14;color:#f4f4fb;font:16px/1.45 system-ui,sans-serif;padding:22px}
+h1{font-size:24px;margin:10px 0 4px}p{color:#9a9ab5;margin:6px 0 14px}
+.logo{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#ff2d95,#7b2cff);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px}
+.logo i{font-style:normal;color:#b6ff00}
+input{width:100%;background:#1b1b2b;color:#fff;border:1px solid #26263a;border-radius:12px;padding:14px;font-size:17px}
+button{width:100%;border:0;border-radius:14px;padding:15px;margin-top:12px;font-size:17px;font-weight:800}
+.go{background:linear-gradient(135deg,#b6ff00,#00e5ff);color:#0b0b14}.ghost{background:#1f1f31;color:#fff;border:1px solid #26263a}
+#msg{font-weight:700;margin-top:14px;min-height:24px}.ok{color:#00ff9c}.bad{color:#ff6b81}
+small{color:#9a9ab5;display:block;margin-top:18px}
+</style></head><body>
+<div class="logo">C<i>C</i></div>
+<h1>Conecta tu servidor</h1>
+<p>ClipCaptions procesa los videos en tu servidor (tu PC o la nube). Escribe su dirección.</p>
+<input id="u" type="url" inputmode="url" autocapitalize="off" autocorrect="off" placeholder="192.168.1.20:8000 o https://mi-servidor.com">
+<button class="ghost" onclick="t()">Probar conexión</button>
+<button class="go" id="save" onclick="s()">Guardar y abrir</button>
+<div id="msg"></div>
+<small>Ejemplos: <b>192.168.1.20:8000</b> (tu PC en la misma Wi-Fi) · <b>https://tu-app.onrender.com</b> (en la nube).</small>
+<script>
+var u=document.getElementById('u'),m=document.getElementById('msg');
+try{u.value=AndroidBridge.getServer()}catch(e){}
+function t(){m.className='';m.textContent='Probando…';AndroidBridge.testServer(u.value)}
+function s(){if(!u.value.trim()){m.className='bad';m.textContent='Escribe la dirección';return}AndroidBridge.saveServer(u.value)}
+window.onTest=function(ok,msg){m.className=ok?'ok':'bad';m.textContent=msg}
+</script></body></html>

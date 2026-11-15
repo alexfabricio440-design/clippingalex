@@ -11,6 +11,10 @@ const fmt = (b) => (b > 1e6 ? (b / 1e6).toFixed(1) + " MB" : Math.round(b / 1e3)
 function showError(msg) { $("err").textContent = msg || ""; show("err", !!msg); }
 
 async function init() {
+  if (window.AndroidBridge) {  // dentro de la app de Android
+    $("installHint").hidden = true; $("srv").hidden = false;
+    $("chg").onclick = (e) => { e.preventDefault(); AndroidBridge.changeServer(); };
+  }
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
   cfg = await (await fetch("/api/config")).json();
   if (cfg.needs_token && !(await tokenOk())) { show("gate", true); show("form", false); return; }
