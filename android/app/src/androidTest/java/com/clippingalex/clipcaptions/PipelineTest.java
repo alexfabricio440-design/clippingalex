@@ -63,10 +63,14 @@ public class PipelineTest {
     }
 
     /** Gradle desinstala la app al terminar y borra sus archivos: copiamos las imagenes a /sdcard/Download. */
-    private void exportPreviews() throws Exception {
-        String cmd = "mkdir -p /sdcard/Download/ccprev && cp " + previews().getAbsolutePath() + "/*.png /sdcard/Download/ccprev/";
+    private void sh(String cmd) throws Exception {
         ParcelFileDescriptor pfd = InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand(cmd);
         try (InputStream in = new ParcelFileDescriptor.AutoCloseInputStream(pfd)) { while (in.read() >= 0) { /* espera */ } }
+    }
+
+    private void exportPreviews() throws Exception {
+        sh("mkdir -p /sdcard/Download/ccprev");
+        sh("cp -r " + previews().getAbsolutePath() + "/. /sdcard/Download/ccprev/");
     }
 
     @Test public void uiScreenshot() throws Exception {
