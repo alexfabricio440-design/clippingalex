@@ -9,3 +9,4 @@ uploads/
 *.mov
 *.wav
 *.flac
+models/*.onnx
