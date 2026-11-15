@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0b14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ClipCaptions">
+<link rel="manifest" href="/static/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/static/icon-192.png">
+<link rel="icon" href="/static/icon-192.png">
+<title>ClipCaptions</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<main>
+  <header>
+    <div class="logo"><span>C</span><span>C</span></div>
+    <div><h1>ClipCaptions</h1><p class="sub">Subtítulos dinámicos para tus clips</p></div>
+  </header>
+
+  <section id="gate" class="card hidden">
+    <label for="token">Código de acceso</label>
+    <input id="token" type="password" autocomplete="off" placeholder="Escribe el código">
+    <button id="tokenBtn" class="btn">Entrar</button>
+  </section>
+
+  <section id="form" class="card">
+    <label class="drop" id="drop" for="file">
+      <input id="file" type="file" accept="video/*" hidden>
+      <div class="drop-ico">＋</div>
+      <div id="dropText"><b>Elige tu video</b><br><small>Vertical 9:16 u horizontal 16:9, limpio y sin subtítulos</small></div>
+    </label>
+
+    <label>Estilo</label>
+    <div id="styles" class="chips"></div>
+    <p id="styleDesc" class="hint"></p>
+
+    <label for="lang">Idioma del audio</label>
+    <select id="lang"></select>
+
+    <button id="go" class="btn" disabled>Crear subtítulos</button>
+    <p id="err" class="err hidden"></p>
+  </section>
+
+  <section id="progress" class="card hidden">
+    <div class="bar"><div id="barFill"></div></div>
+    <p id="progMsg" class="msg">Subiendo…</p>
+    <p class="hint">No cierres esta pantalla hasta que termine.</p>
+  </section>
+
+  <section id="result" class="card hidden">
+    <video id="player" controls playsinline loop></video>
+    <p id="resInfo" class="hint"></p>
+    <div class="row">
+      <a id="dl" class="btn" download>Descargar</a>
+      <button id="share" class="btn ghost hidden">Compartir</button>
+    </div>
+    <button id="again" class="btn ghost">Hacer otro video</button>
+  </section>
+
+  <p class="foot">Instálala: en el menú del navegador elige <b>Agregar a pantalla de inicio</b>.</p>
+</main>
+<script src="/static/app.js"></script>
+</body>
+</html>

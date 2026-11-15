@@ -4,3 +4,4 @@ opencv-python-headless>=4.9
 scikit-image>=0.22
 numpy>=1.26
 pytest>=8.0
+gunicorn>=22.0

@@ -9,11 +9,14 @@ from clipcaptions.layout import free_anchors, SAFE
 def make_video(path, w=600, h=960, secs=3, fps=12, move=True):
     """Video vertical: el astronauta (cara real) se mueve un poco sobre fondo."""
     face = cv2.cvtColor(data.astronaut(), cv2.COLOR_RGB2BGR)
+    fw = 512 if (w >= 600 and h >= 720) else int(min(w, h) * 0.7)
+    face = cv2.resize(face, (fw, fw))
+    y0 = 200 if fw == 512 else int(h * 0.1)
     out = cv2.VideoWriter(path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
     for i in range(secs * fps):
         f = np.full((h, w, 3), (40, 30, 30), np.uint8)
         ox = int((i / (secs * fps)) * 20) if move else 0
-        f[200:200 + 512, 14 + ox:14 + ox + 512] = face
+        f[y0:y0 + fw, 14 + ox:14 + ox + fw] = face
         out.write(f)
     out.release()
     return path
