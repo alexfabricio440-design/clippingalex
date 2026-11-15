@@ -1,0 +1,21 @@
+--------- beginning of main
+11-15 22:39:55.471  4935  5162 I CCTEST  : rostros en 22/25 muestras
+11-15 22:40:32.239  4935  5162 I CCTEST  : vert exportado en 6649 ms
+11-15 22:40:32.258  4935  5162 I CCTEST  : vert salida codificada 960x540 rotacion 90
+11-15 22:40:33.113  4935  5162 I CCTEST  : vert frase 'ESTO ES LO' aparece media-centro pixelesFuertes=2418 enCabeza=0/5628
+11-15 22:40:33.957  4935  5162 I CCTEST  : vert frase 'QUE NADIE TE' impacto baja-centro pixelesFuertes=3169 enCabeza=0/5628
+11-15 22:40:35.482  4935  5162 I CCTEST  : vert frase 'cuenta sobre ganar' mixto baja-centro pixelesFuertes=3354 enCabeza=0/5544
+11-15 22:40:36.310  4935  5162 I CCTEST  : vert frase 'dinero en internet.' grueso media-centro pixelesFuertes=4148 enCabeza=0/5628
+11-15 22:40:37.533  4935  5162 I CCTEST  : vert frase 'PRIMERO TIENES QUE' neon baja-centro pixelesFuertes=6699 enCabeza=0/5460
+11-15 22:40:38.681  4935  5162 I CCTEST  : vert frase 'ENTENDER ALGO MUY' impacto baja-centro pixelesFuertes=5201 enCabeza=0/5460
+11-15 22:40:39.933  4935  5162 I CCTEST  : vert frase 'importante: el 90%' grueso media-centro pixelesFuertes=4792 enCabeza=0/5460
+11-15 22:40:41.079  4935  5162 I CCTEST  : vert frase 'DE LA GENTE' neon baja-der pixelesFuertes=4444 enCabeza=0/5544
+11-15 22:41:09.402  4935  5162 I CCTEST  : rot exportado en 7473 ms
+11-15 22:41:09.415  4935  5162 I CCTEST  : rot salida codificada 960x540 rotacion 270
+11-15 22:41:09.848  4935  5162 I CCTEST  : rot frase 'ESTO ES LO' aparece media-centro pixelesFuertes=2411 enCabeza=0/5848
+11-15 22:41:10.261  4935  5162 I CCTEST  : rot frase 'QUE NADIE TE' impacto baja-centro pixelesFuertes=3139 enCabeza=0/5628
+11-15 22:41:10.787  4935  5162 I CCTEST  : rot frase 'cuenta sobre ganar' mixto baja-centro pixelesFuertes=3353 enCabeza=0/5544
+11-15 22:41:11.548  4935  5162 I CCTEST  : rot frase 'dinero en internet.' grueso media-centro pixelesFuertes=4139 enCabeza=0/5460
+11-15 22:41:12.676  4935  5162 I CCTEST  : rot frase 'PRIMERO TIENES QUE' neon baja-centro pixelesFuertes=6557 enCabeza=0/5628
+11-15 22:41:16.965  4935  5162 I CCTEST  : rot frase 'importante: el 90%' grueso media-centro pixelesFuertes=4801 enCabeza=0/5544
+11-15 22:41:18.839  4935  5162 I CCTEST  : rot frase 'DE LA GENTE' neon baja-der pixelesFuertes=4420 enCabeza=0/5544
