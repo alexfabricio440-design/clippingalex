@@ -243,7 +243,7 @@ public final class CaptionEngine {
         float lw;
         while (true) {
             for (int i = 0; i < n; i++) ww[i] = textW(p.texts[i], st, p.attrs[i], size);
-            space = textW(" ", st, new WAttr(), size);
+            space = textW(" ", st, new WAttr(), size) * 1.35f;
             lines = splitLines(ww, space, maxw, force2);
             lw = 0;
             for (int[] ln : lines) {
@@ -396,7 +396,7 @@ public final class CaptionEngine {
                     if (!(st.reveal && j != 0)) s *= entryScale(p.anim, tin);
                 } else if (active) {
                     double tw = t - wordStart(p, j);
-                    s *= 1f + 0.2f * (1f - clamp01(tw / 0.14));
+                    s *= 1f + 0.12f * (1f - clamp01(tw / 0.14));
                 }
                 Typeface tf = face((a.italic || st.italicAll) ? st.fileItalic : st.file);
                 fill.setTypeface(tf); stroke.setTypeface(tf);
