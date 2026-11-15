@@ -10,14 +10,15 @@ import com.clippingalex.clipcaptions.core.Box;
 import com.clippingalex.clipcaptions.core.FaceTrack;
 import com.clippingalex.clipcaptions.core.Phrases;
 import com.clippingalex.clipcaptions.core.Word;
-import com.sun.net.httpserver.HttpServer;
 
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
-import java.net.InetSocketAddress;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -126,37 +127,83 @@ public class CoreTest {
         try { GroqClient.parse("{\"text\":\"x\"}"); fail(); } catch (GroqClient.GroqException e) { assertTrue(e.getMessage().contains("palabras")); }
     }
 
+    /** Servidor HTTP minimo para probar el cliente (Android no trae com.sun.net.httpserver). */
+    static final class FakeServer implements Runnable {
+        final ServerSocket ss;
+        volatile String auth = "", body = "";
+        final AtomicInteger okCalls = new AtomicInteger();
+
+        FakeServer() throws Exception { ss = new ServerSocket(0, 5, java.net.InetAddress.getByName("127.0.0.1")); }
+
+        int port() { return ss.getLocalPort(); }
+
+        static String line(InputStream in) throws Exception {
+            StringBuilder sb = new StringBuilder();
+            int c;
+            while ((c = in.read()) >= 0) { if (c == '\n') break; if (c != '\r') sb.append((char) c); }
+            return sb.toString();
+        }
+
+        public void run() {
+            while (!ss.isClosed()) {
+                try (Socket s = ss.accept()) {
+                    InputStream in = s.getInputStream();
+                    String req = line(in);
+                    boolean chunked = false;
+                    int len = 0;
+                    String h;
+                    while (!(h = line(in)).isEmpty()) {
+                        String l = h.toLowerCase();
+                        if (l.startsWith("authorization:")) auth = h.substring(14).trim();
+                        if (l.startsWith("transfer-encoding:") && l.contains("chunked")) chunked = true;
+                        if (l.startsWith("content-length:")) len = Integer.parseInt(h.substring(15).trim());
+                    }
+                    ByteArrayOutputStream bo = new ByteArrayOutputStream();
+                    if (chunked) {
+                        while (true) {
+                            int n = Integer.parseInt(line(in).trim(), 16);
+                            if (n == 0) { line(in); break; }
+                            byte[] b = new byte[n]; int got = 0;
+                            while (got < n) got += in.read(b, got, n - got);
+                            bo.write(b); line(in);
+                        }
+                    } else { byte[] b = new byte[len]; int got = 0; while (got < len) got += in.read(b, got, len - got); bo.write(b); }
+                    String path = req.split(" ")[1];
+                    String resp;
+                    if (path.equals("/bad")) resp = "HTTP/1.1 401 Unauthorized\r\nContent-Length: 2\r\nConnection: close\r\n\r\n{}";
+                    else {
+                        body = bo.toString("ISO-8859-1");
+                        if (okCalls.incrementAndGet() == 1) resp = "HTTP/1.1 429 Too Many\r\nretry-after: 0\r\nContent-Length: 2\r\nConnection: close\r\n\r\n{}";
+                        else {
+                            String j = "{\"words\":[{\"word\":\"Hola\",\"start\":0.1,\"end\":0.5}]}";
+                            resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: " + j.length() + "\r\nConnection: close\r\n\r\n" + j;
+                        }
+                    }
+                    OutputStream out = s.getOutputStream();
+                    out.write(resp.getBytes("ISO-8859-1")); out.flush();
+                } catch (Exception e) { /* socket cerrado al terminar */ }
+            }
+        }
+    }
+
     @Test public void groqUploadRetryAndErrors() throws Exception {
-        final AtomicInteger calls = new AtomicInteger();
-        final String[] seen = new String[2];
-        HttpServer srv = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
-        srv.createContext("/ok", ex -> {
-            seen[0] = ex.getRequestHeaders().getFirst("Authorization");
-            seen[1] = readAll(ex.getRequestBody());
-            byte[] resp;
-            int code;
-            if (calls.incrementAndGet() == 1) { ex.getResponseHeaders().add("retry-after", "0"); code = 429; resp = "{}".getBytes(); }
-            else { code = 200; resp = "{\"words\":[{\"word\":\"Hola\",\"start\":0.1,\"end\":0.5}]}".getBytes(); }
-            ex.sendResponseHeaders(code, resp.length);
-            ex.getResponseBody().write(resp); ex.close();
-        });
-        srv.createContext("/bad", ex -> { byte[] r = "{}".getBytes(); ex.sendResponseHeaders(401, r.length); ex.getResponseBody().write(r); ex.close(); });
-        srv.start();
+        FakeServer srv = new FakeServer();
+        new Thread(srv).start();
         try {
             File audio = File.createTempFile("a", ".m4a");
             Files.write(audio.toPath(), new byte[2000]);
-            String base = "http://127.0.0.1:" + srv.getAddress().getPort();
+            String base = "http://127.0.0.1:" + srv.port();
             List<Word> w = new GroqClient(base + "/ok").transcribe(audio, "gsk_test", "es");
             assertEquals(1, w.size());
-            assertEquals(2, calls.get());                                 // reintento tras 429
-            assertEquals("Bearer gsk_test", seen[0]);
-            assertTrue(seen[1].contains("name=\"model\"") && seen[1].contains("whisper-large-v3-turbo"));
-            assertTrue(seen[1].contains("timestamp_granularities[]") && seen[1].contains("name=\"language\""));
-            assertTrue(seen[1].contains("filename=\"" + audio.getName() + "\""));
+            assertEquals(2, srv.okCalls.get());                           // reintento tras 429
+            assertEquals("Bearer gsk_test", srv.auth);
+            assertTrue(srv.body.contains("name=\"model\"") && srv.body.contains("whisper-large-v3-turbo"));
+            assertTrue(srv.body.contains("timestamp_granularities[]") && srv.body.contains("name=\"language\""));
+            assertTrue(srv.body.contains("filename=\"" + audio.getName() + "\""));
             try { new GroqClient(base + "/bad").transcribe(audio, "x", null); fail(); }
             catch (GroqClient.GroqException e) { assertTrue(e.getMessage().contains("clave")); }
             try { new GroqClient(base + "/ok").transcribe(audio, "", null); fail(); }
             catch (GroqClient.GroqException e) { assertTrue(e.getMessage().contains("clave")); }
-        } finally { srv.stop(0); }
+        } finally { srv.ss.close(); }
     }
 }
