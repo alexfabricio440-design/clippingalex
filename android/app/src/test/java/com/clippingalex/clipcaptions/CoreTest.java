@@ -190,7 +190,7 @@ public class CoreTest {
         FakeServer srv = new FakeServer();
         new Thread(srv).start();
         try {
-            File audio = File.createTempFile("a", ".m4a");
+            File audio = File.createTempFile("audio", ".m4a");
             Files.write(audio.toPath(), new byte[2000]);
             String base = "http://127.0.0.1:" + srv.port();
             List<Word> w = new GroqClient(base + "/ok").transcribe(audio, "gsk_test", "es");

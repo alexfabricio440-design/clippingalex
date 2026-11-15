@@ -100,8 +100,14 @@ public class PipelineTest {
 
         MediaMetadataRetriever r = new MediaMetadataRetriever();
         r.setDataSource(out.getAbsolutePath());
-        assertEquals(os[0], Integer.parseInt(r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)));
-        assertEquals(os[1], Integer.parseInt(r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)));
+        int cw = Integer.parseInt(r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
+        int ch = Integer.parseInt(r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
+        String rot = r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION);
+        int deg = rot == null ? 0 : Integer.parseInt(rot);
+        Log.i("CCTEST", tag + " salida codificada " + cw + "x" + ch + " rotacion " + deg);
+        boolean swap = deg == 90 || deg == 270;     // Media3 puede guardar vertical como horizontal + rotacion
+        assertEquals(os[0], swap ? ch : cw);
+        assertEquals(os[1], swap ? cw : ch);
         double dur = Long.parseLong(r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)) / 1000.0;
         assertTrue("duracion " + dur, Math.abs(dur - info.duration) < 0.6);
 
