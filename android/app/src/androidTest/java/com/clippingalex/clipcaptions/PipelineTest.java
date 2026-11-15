@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
+import android.content.Intent;
+import android.os.ParcelFileDescriptor;
 import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
@@ -58,6 +60,23 @@ public class PipelineTest {
         File d = new File(app.getExternalFilesDir(null), "previews");
         d.mkdirs();
         return d;
+    }
+
+    /** Gradle desinstala la app al terminar y borra sus archivos: copiamos las imagenes a /sdcard/Download. */
+    private void exportPreviews() throws Exception {
+        String cmd = "mkdir -p /sdcard/Download/ccprev && cp " + previews().getAbsolutePath() + "/*.png /sdcard/Download/ccprev/";
+        ParcelFileDescriptor pfd = InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand(cmd);
+        try (InputStream in = new ParcelFileDescriptor.AutoCloseInputStream(pfd)) { while (in.read() >= 0) { /* espera */ } }
+    }
+
+    @Test public void uiScreenshot() throws Exception {
+        Intent i = new Intent(app, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        InstrumentationRegistry.getInstrumentation().startActivitySync(i);
+        Thread.sleep(2000);
+        Bitmap shot = InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot();
+        assertTrue(shot != null && shot.getWidth() > 100);
+        savePng(shot, new File(previews(), "ui_home.png"));
+        exportPreviews();
     }
 
     private static void savePng(Bitmap b, File f) throws Exception {
@@ -135,6 +154,7 @@ public class PipelineTest {
             if (strongAll > 400) drawn++;                       // se ven subtitulos en este cuadro
             assertTrue("subtitulo sobre la cabeza en '" + p.text() + "' (" + strongInHead + ")", strongInHead <= Math.max(5, headPx * 0.002));
         }
+        exportPreviews();
         assertTrue("deben verse subtitulos en el video (cuadros con texto: " + drawn + ")", drawn >= 3);
     }
 
