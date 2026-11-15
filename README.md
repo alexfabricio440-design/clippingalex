@@ -49,9 +49,15 @@ Los videos subidos y resultados se borran solos a las 2 horas.
 ## Pruebas
 `python -m pytest -q tests` (42 pruebas: transcripción, rostros, estilos, render y API web).
 
-## App de Android (APK)
-Descarga **ClipCaptions.apk** desde https://github.com/alexfabricio440-design/clippingalex/releases/tag/apk-latest
-(se recompila solo cada vez que cambia la carpeta `android/`). Al abrirla por primera vez escribe la
-dirección de tu servidor (ej. `192.168.1.20:8000` en tu Wi-Fi, o `https://tu-app...` en la nube).
-La app es el "marco" del teléfono: el procesamiento de video corre en tu servidor.
-Para instalarla, Android puede pedir permiso para "instalar apps de este origen".
+## App de Android (APK) - independiente, todo en el telefono
+Descarga **ClipCaptions.apk**: https://github.com/alexfabricio440-design/clippingalex/releases/download/apk-latest/ClipCaptions.apk
+(se recompila y se prueba sola en GitHub cada vez que cambia `android/`).
+
+- No necesita servidor ni direccion: el video se procesa dentro del telefono (Media3 para el video,
+  ML Kit para detectar tu cara, motor de subtitulos propio).
+- Solo la **transcripcion** usa internet: pega tu clave gratuita de Groq (console.groq.com/keys) una vez en la app.
+- Limites: videos de hasta 6 minutos; salida hasta 1920 px de lado mayor.
+- Pruebas en GitHub: unitarias + emulador Android con un video de prueba (rostro, audio, subtitulos, rotacion de celular).
+  Las imagenes de ejemplo quedan en la rama `ci-previews`.
+
+El servidor web (`python -m clipcaptions.webapp`) sigue disponible para uso en PC, pero la app ya no lo necesita.
